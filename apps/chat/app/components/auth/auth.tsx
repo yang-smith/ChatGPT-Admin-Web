@@ -222,7 +222,7 @@ const EmailLogin: React.FC = () => {
       </div>
 
       <div className={styles["auth-actions"]}>
-        <IconButton text={Locales.Auth.Confirm0} type="primary" onClick={() => handleSubmit(undefined, handleLogin)} />
+        <IconButton text={Locales.Auth.Confirm} type="primary" onClick={() => handleSubmit(undefined, handleLogin)} />
       </div>
     </div>
   );
