@@ -47,6 +47,7 @@ const cn = {
     Tips: "身份认证",
     Input: "在此处填写访问码",
     Confirm: "确认",
+    Confirm0: "登录/注册",
     Later: "稍后再说",
   },
   ChatItem: {
