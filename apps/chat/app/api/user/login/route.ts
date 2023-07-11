@@ -47,12 +47,23 @@ export const POST = serverErrorCatcher(async (req: NextRequest) => {
     const { providerId, providerContent } =
       await ChatRequest.UserLogin.parseAsync(await req.json());
 
-    return NextResponse.json({
-      status: serverStatus.success,
-      ...(await UserDAL.login({
+      const result = await UserDAL.login({
         providerId: providerId as providerType,
         providerContent,
-      })),
+    });
+    
+    // 检查结果是否包含错误代码
+    if (result.errorCode) {
+        return NextResponse.json({
+            status: result.errorCode,
+            ...result,
+        });
+    }
+
+    // 如果没有错误，返回成功的结果
+    return NextResponse.json({
+        status: serverStatus.success,
+        ...result,
     });
   } catch (error) {
     console.error("[SERVER ERROR]", error);

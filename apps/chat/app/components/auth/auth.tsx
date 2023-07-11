@@ -147,44 +147,53 @@ const EmailLogin: React.FC = () => {
 
   const handleLogin = async (e: FormEvent | undefined) => {
     // e.preventDefault();
-
+  
     if (!email || !password)
       return showToast(
         Locales.User.PleaseInput(
           `${Locales.User.Email}, ${Locales.User.Password}`,
         ),
       );
-
-    const res = await apiUserLoginPost(email, password);
-
-    if (res.status === serverStatus.notExist) {
-
-    }
-
-    switch (res.status) {
-      case serverStatus.success: {
-        updateSessionToken(res.signedToken.token, res.signedToken.expiredAt);
-        showToast(Locales.User.Success(Locales.User.Login));
-        return navigate(Path.Chat);
-      }
-      case serverStatus.notExist: {
-        const registerRes = await apiUserRegisterSimple({email, password});
-        if (registerRes.status !== serverStatus.success) {
+  
+      const res = await apiUserLoginPost(email, password);
+      console.log(res.status);
+      switch (res.status) {
+        case serverStatus.success: {
+          updateSessionToken(res.signedToken.token, res.signedToken.expiredAt);
+          showToast(Locales.User.Success(Locales.User.Login));
+          return navigate(Path.Chat);
+        }
+        case serverStatus.userNotExist: {
+          handleRegister();
+          break;
+        }
+        case serverStatus.wrongPassword: {
           return showToast(Locales.User.PasswordError);
         }
-        updateSessionToken(registerRes.signedToken.token, registerRes.signedToken.expiredAt);
-        showToast(Locales.User.Success(Locales.User.Login));
-        return navigate(Path.Chat);
-      }
-      case serverStatus.wrongPassword: {
-        return showToast(Locales.User.PasswordError);
+        default: {
+          return showToast(Locales.User.PasswordError);
+        }
+      } 
+  };
+
+  const handleRegister = async () => {
+    const res = await apiUserRegisterSimple({email, password});
+    console.log(res);
+    switch (res.status) {
+      case serverStatus.success: {
+        const logres = await apiUserLoginPost(email, password);
+        if(logres.status == serverStatus.success) {
+          updateSessionToken(logres.signedToken.token, logres.signedToken.expiredAt);
+          showToast(Locales.User.Success(Locales.User.Login));
+          return navigate(Path.Chat);
+        }
+        break;
       }
       default: {
         return showToast(Locales.User.PasswordError);
       }
     }
   };
-
 
   return (
     <div className={styles["form-container"]}>
