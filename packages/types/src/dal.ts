@@ -19,6 +19,7 @@ export namespace DALType {
       token: string;
       expiredAt: number;
     };
+    errorCode?: number;
   }
 
   export interface UserRegister extends UserLogin {
