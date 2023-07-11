@@ -86,3 +86,23 @@ export const apiUserRegister = async ({
     })
   ).json()) as ChatResponse.UserRegister;
 };
+
+export const apiUserRegisterSimple = async ({
+  email,
+  password,
+}: {
+  email: string;
+  password: string;
+}) => {
+  return (await (
+    await fetch("/api/user/register", {
+      cache: "no-store",
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: email.trim(),
+        password,
+      }),
+    })
+  ).json()) as ChatResponse.UserRegister;
+};

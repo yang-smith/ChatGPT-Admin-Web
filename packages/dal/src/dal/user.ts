@@ -207,6 +207,58 @@ export class UserDAL {
     };
   }
 
+    /**
+   * 简单注册
+   * @param email
+   * @param password
+   */
+  static async registerSimple({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }): Promise<DALType.UserRegister> {
+    /* 当使用邮箱注册时，必须输入密码 */
+    if (!email || !password) {
+      throw Error("Email and password must be provided");
+    }
+  
+    const existUser = await client.user.findUnique({
+      where: { email: email },
+    });
+  
+    if (existUser) {
+      throw new ServerError(
+        serverStatus.alreadyExisted,
+        "User with this email already exists"
+      );
+    }
+  
+    const userInput: Prisma.UserCreateInput = {
+      email: email,
+      passwordHash: md5.hash(password),
+      role: {
+        connectOrCreate: {
+          where: {
+            name: "user",
+          },
+          create: {
+            name: "user",
+          },
+        },
+      },
+    };
+  
+    const user = await client.user.create({ data: userInput });
+  
+    return {
+      signedToken: await accessTokenUtils.sign(7 * 24 * (60 * 60), {
+        uid: user.userId,
+      }),
+    };
+  }
+  
   /**
    * 登录
    * @param loginType

@@ -17,6 +17,7 @@ import {
   apiUserLoginPost,
   apiUserRegister,
   apiUserRegisterCode,
+  apiUserRegisterSimple,
 } from "@/app/api";
 
 import styles from "./auth.module.scss";
@@ -144,8 +145,8 @@ const EmailLogin: React.FC = () => {
   /* Prevent duplicate form submissions */
   const updateSessionToken = useUserStore((state) => state.updateSessionToken);
 
-  const handleLogin = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async (e: FormEvent | undefined) => {
+    // e.preventDefault();
 
     if (!email || !password)
       return showToast(
@@ -156,6 +157,10 @@ const EmailLogin: React.FC = () => {
 
     const res = await apiUserLoginPost(email, password);
 
+    if (res.status === serverStatus.notExist) {
+
+    }
+
     switch (res.status) {
       case serverStatus.success: {
         updateSessionToken(res.signedToken.token, res.signedToken.expiredAt);
@@ -163,7 +168,13 @@ const EmailLogin: React.FC = () => {
         return navigate(Path.Chat);
       }
       case serverStatus.notExist: {
-        return showToast(Locales.User.NotYetRegister);
+        const registerRes = await apiUserRegisterSimple({email, password});
+        if (registerRes.status !== serverStatus.success) {
+          return showToast(Locales.User.PasswordError);
+        }
+        updateSessionToken(registerRes.signedToken.token, registerRes.signedToken.expiredAt);
+        showToast(Locales.User.Success(Locales.User.Login));
+        return navigate(Path.Chat);
       }
       case serverStatus.wrongPassword: {
         return showToast(Locales.User.PasswordError);
@@ -173,6 +184,7 @@ const EmailLogin: React.FC = () => {
       }
     }
   };
+
 
   return (
     <div className={styles["form-container"]}>
@@ -201,7 +213,7 @@ const EmailLogin: React.FC = () => {
       </div>
 
       <div className={styles["auth-actions"]}>
-        <IconButton text={Locales.Auth.Confirm} type="primary" />
+        <IconButton text={Locales.Auth.Confirm} type="primary" onClick={() => handleSubmit(undefined, handleLogin)} />
       </div>
     </div>
   );
@@ -251,74 +263,74 @@ const WeChatLogin: React.FC = () => {
 };
 
 export function AuthPage() {
-  const [tab, setTab] = useState<"email" | "phone" | "wechat">("phone");
-  console.log(wechatService);
-  let content = null;
-  switch (tab) {
-    case "wechat":
-      content = (
-        <div className={styles["wechat-part"]}>
-          <div className={styles["wechat-part-title"]}>
-            {Locales.User.WeChatLogin}
-          </div>
-          <div className={styles["wechat-login-container"]}>
-            <WeChatLogin />
-          </div>
-          <div
-            className={styles["wechat-part-go-back"]}
-            onClick={() => {
-              setTab("phone");
-            }}
-          >
-            <LeftArrow />
-          </div>
-        </div>
-      );
-      break;
-    case "email":
-    case "phone":
-      content = (
-        <div className={styles["password-part"]}>
-          <div className={styles["tab-container"]}>
-            <button
-              className={`${styles["tab-button"]} ${
-                tab === "phone" ? styles.active : ""
-              }`}
-              onClick={() => setTab("phone")}
-            >
-              {Locales.User.CodeLogin}
-            </button>
-            {emailService && (
-              <button
-                className={`${styles["tab-button"]} ${
-                  tab === "email" ? styles.active : ""
-                }`}
-                onClick={() => setTab("email")}
-              >
-                {Locales.User.PasswordLogin}
-              </button>
-            )}
-          </div>
-          {tab === "phone" ? <CaptchaLogin /> : <EmailLogin />}
+  // const [tab, setTab] = useState<"email" | "phone" | "wechat">("phone");
+  // console.log(wechatService);
+  // let content = null;
+  // switch (tab) {
+  //   case "wechat":
+  //     content = (
+  //       <div className={styles["wechat-part"]}>
+  //         <div className={styles["wechat-part-title"]}>
+  //           {Locales.User.WeChatLogin}
+  //         </div>
+  //         <div className={styles["wechat-login-container"]}>
+  //           <WeChatLogin />
+  //         </div>
+  //         <div
+  //           className={styles["wechat-part-go-back"]}
+  //           onClick={() => {
+  //             setTab("phone");
+  //           }}
+  //         >
+  //           <LeftArrow />
+  //         </div>
+  //       </div>
+  //     );
+  //     break;
+  //   case "email":
+  //   case "phone":
+  //     content = (
+  //       <div className={styles["password-part"]}>
+  //         <div className={styles["tab-container"]}>
+  //           <button
+  //             className={`${styles["tab-button"]} ${
+  //               tab === "phone" ? styles.active : ""
+  //             }`}
+  //             onClick={() => setTab("phone")}
+  //           >
+  //             {Locales.User.CodeLogin}
+  //           </button>
+  //           {emailService && (
+  //             <button
+  //               className={`${styles["tab-button"]} ${
+  //                 tab === "email" ? styles.active : ""
+  //               }`}
+  //               onClick={() => setTab("email")}
+  //             >
+  //               {Locales.User.PasswordLogin}
+  //             </button>
+  //           )}
+  //         </div>
+  //         {tab === "phone" ? <CaptchaLogin /> : <EmailLogin />}
 
-          <div className={styles["divider"]}>
-            <div className={styles["divider-line"]} />
-            <div className={styles["divider-text"]}>or</div>
-            <div className={styles["divider-line"]} />
-          </div>
-          <div className={styles["third-part-login-options"]}>
-            <img
-              src={WechatLogo.src}
-              className={styles["third-part-option"]}
-              onClick={() => {
-                setTab("wechat");
-              }}
-            />
-          </div>
-        </div>
-      );
-      break;
-  }
+  //         <div className={styles["divider"]}>
+  //           <div className={styles["divider-line"]} />
+  //           <div className={styles["divider-text"]}>or</div>
+  //           <div className={styles["divider-line"]} />
+  //         </div>
+  //         <div className={styles["third-part-login-options"]}>
+  //           <img
+  //             src={WechatLogo.src}
+  //             className={styles["third-part-option"]}
+  //             onClick={() => {
+  //               setTab("wechat");
+  //             }}
+  //           />
+  //         </div>
+  //       </div>
+  //     );
+  //     break;
+  // }
 
   return (
     <div className={styles["auth-page"]}>
@@ -327,7 +339,9 @@ export function AuthPage() {
       </div>
       <div className={styles["auth-title"]}>{Locales.Auth.Title}</div>
       <div className={styles["auth-tips"]}>{Locales.Auth.Tips}</div>
-      <div className={styles["auth-container"]}>{content}</div>
+      <div className={styles["auth-container"]}>
+        <EmailLogin />
+      </div>
     </div>
   );
 }

@@ -23,21 +23,32 @@ export async function POST(req: NextRequest): Promise<Response> {
    * The correct return type here maybe look like Promise<NextResponse<ChatResponse.UserRegister>>
    * */
   try {
+    // const {
+    //   email,
+    //   phone,
+    //   password,
+    //   register_code: registerCode,
+    //   invitation_code: invitationCode,
+    // } = await ChatRequest.UserRegisterPost.parseAsync(await req.json());
+
+    // /* Activation verification code */
+    // const result = await UserDAL.register({
+    //   email,
+    //   phone,
+    //   password,
+    //   registerCode,
+    //   invitationCode,
+    // });
+
     const {
       email,
-      phone,
       password,
-      register_code: registerCode,
-      invitation_code: invitationCode,
-    } = await ChatRequest.UserRegisterPost.parseAsync(await req.json());
+    } = await ChatRequest.UserRegisterSimple.parseAsync(await req.json());
 
     /* Activation verification code */
-    const result = await UserDAL.register({
+    const result = await UserDAL.registerSimple({
       email,
-      phone,
       password,
-      registerCode,
-      invitationCode,
     });
 
     return NextResponse.json({
