@@ -3,6 +3,7 @@ import { ServerError, serverStatus, DALType } from "@caw/types";
 import client, { Prisma, type User } from "@caw/database";
 
 import { accessTokenUtils } from "../utils";
+import { error } from "console";
 
 export type providerType = "email" | "phone" | "wechat";
 
@@ -278,12 +279,18 @@ export class UserDAL {
       providerContent: providerContent.content,
     });
     if (!user)
-      throw new ServerError(serverStatus.userNotExist, "user does not exist");
+      return {
+        errorCode: serverStatus.userNotExist,
+        signedToken: {token:"error", expiredAt: 0}
+      };
     if (
       providerId !== "wechat" &&
       md5.hash(providerContent.password ?? "") != user.passwordHash
     )
-      throw new ServerError(serverStatus.wrongPassword, "password not right");
+      return {
+        errorCode: serverStatus.wrongPassword,
+        signedToken: {token:"error", expiredAt: 0}
+      };
     /* default session duration is a week */
     return {
       signedToken: await accessTokenUtils.sign(7 * 24 * (60 * 60), {
