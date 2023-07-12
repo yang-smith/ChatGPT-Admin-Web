@@ -5,7 +5,9 @@ import { streamToLineIterator } from './utils';
 const openAiBase = process.env.OPENAI_BASE ?? 'https://api.openai.com';
 const openAiKey = process.env.OPENAI_KEY!;
 const openAiProxy = process.env.OPENAI_PROXY ?? '';
-const openAiEndpoint = `${openAiProxy}${openAiBase}/v1/chat/completions`;
+// const openAiEndpoint = `${openAiProxy}${openAiBase}/v1/chat/completions`;
+const openAiEndpoint = `https://api.autumnriver.chat/api/v1/post`;
+
 
 export class OpenAIBot extends AbstractBot {
   constructor(
@@ -38,30 +40,37 @@ export class OpenAIBot extends AbstractBot {
       }),
       signal,
     });
+    console.log(response);
 
     if (!response.ok) {
       throw new Error(`OpenAI API error: ${response.statusText}`);
     }
 
-    const lines = streamToLineIterator(response.body!);
+    const data = await response.json();
+    const message = data.message;
 
-    for await (const line of lines) {
-      if (!line.startsWith('data:')) continue;
+    if (!message) return;
 
-      const data = line.slice('data:'.length).trim();
+    yield message;
+    // const lines = streamToLineIterator(response.body!);
 
-      if (!data || data === '[DONE]') continue;
+    // for await (const line of lines) {
+    //   if (!line.startsWith('data:')) continue;
 
-      const {
-        choices: [
-          {
-            delta: { content },
-          },
-        ],
-      } = JSON.parse(data);
+    //   const data = line.slice('data:'.length).trim();
 
-      if (!content) continue;
-      yield content;
-    }
+    //   if (!data || data === '[DONE]') continue;
+
+    //   const {
+    //     choices: [
+    //       {
+    //         delta: { content },
+    //       },
+    //     ],
+    //   } = JSON.parse(data);
+
+    //   if (!content) continue;
+    //   yield content;
+    // }
   }
 }

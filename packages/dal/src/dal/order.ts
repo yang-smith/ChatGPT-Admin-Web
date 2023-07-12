@@ -31,7 +31,7 @@ export class OrderDAL {
     const orderInput: Prisma.OrderCreateInput = {
       orderId: this.getNextId(),
       count: count,
-      amount: 0.01 * count,
+      amount: 1 * count,
       status: OrderStatus.Pending,
       plan: {
         connect: {
